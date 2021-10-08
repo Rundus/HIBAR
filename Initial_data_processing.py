@@ -6,10 +6,12 @@ start_time = time.time()
 
 import numpy as np
 from cdflib import cdfwrite
-from Files import ESA_file_1,ESA_file_2,root
+from Files import ESA_file_1,ESA_file_2,root,counts_file_low
 from Files import mag36200_file,magX_file,magY_file,magZ_file
 from Files import hibar_pitch_file,hibar_yaw_file,user_path
 from Variables import sensor_names,ESA1_info,ESA2_info,Epochs_start_tt2000
+from Variables import zvars_counts_low
+from functions import write_var_to_file
 
 
 # ----------------------------------------
@@ -239,8 +241,7 @@ for select in selects:
     # -------------------------
     # CREATE THE EPOCH VARIABLE
     # -------------------------
-    Sensor_Epoch_tt2000 = np.array((wSensor_Epoch)*(10**(9)) + Epochs_start_tt2000,dtype='int64')
-
+    wSensor_Epoch_tt2000 = np.array((wSensor_Epoch)*(10**(9)) + Epochs_start_tt2000,dtype='float64')
 
     #-------------------
     # WRITE OUT THE DATA
@@ -251,9 +252,8 @@ for select in selects:
     vardata = wcounts
     attrs = ['counts', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'counts', 'nnspectrogram']
     infos = [0, 44, len(vardata), attrs[0], [-9223372036854775807]]
-    varattributes = {'CATDESC': attrs[0], 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch','DEPEND_2':'energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
-                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
-                     'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
+    varattributes = {'CATDESC': 'ESA', 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch_angle','DEPEND_2':'energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
+                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': 'ESA', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 2,
@@ -265,12 +265,12 @@ for select in selects:
     print(1)
     # ESA SENSOR DATA POINT TIME OCCURANCE
     vardata = wESA_sensor_Times
-    attrs = ['ESA_sensor_data_point_time_occurance', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'counts', 'nnspectrogram']
+    attrs = ['ESA_data_time_since_launch', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'seonds', 'nnspectrogram']
     infos = [1, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DEPEND_0': 'epoch', 'DEPEND_1': 'energy',
                      'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
-                     'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
+                     'LABL_PTR_1': 'eepaa_LABL_1', 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
@@ -281,7 +281,8 @@ for select in selects:
 
     print(2)
     # EPOCH
-    vardata = Sensor_Epoch_tt2000
+    vardata = wSensor_Epoch_tt2000
+    # vardata = wSensor_Epoch
     attrs = ['epoch', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'ns', 'series']
     infos = [2, 33, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
@@ -295,6 +296,16 @@ for select in selects:
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
 
+    # vardata = np.array(roll_output_epoch[select], dtype='float64')
+    # attributes = ['Roll_Epoch', 'ns', 'linear', vardata.min(), vardata.max(),counts_file_low.varattsget(zvars_counts_low[0], expand=True)]
+    # attrs = attributes[5]
+    # attrs['VAR_TYPE'] = 'support_data'
+    # attributes[5] = attrs
+    # varinfo = counts_file_low.varinq(zvars_counts_low[0])
+    # write_var_to_file(sun_spike_noise_file_low, varinfo, vardata, attributes)
+
+
+
     print(3)
     # ENERGY
     vardata = np.array(Energies_DAC, dtype='float64')
@@ -305,8 +316,8 @@ for select in selects:
                      'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE':'Support_data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
-               'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 2,
-               'Dim_Sizes': [len(Energies_DAC)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
+               'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
@@ -321,8 +332,8 @@ for select in selects:
                      'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'Support_data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
-               'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 2,
-               'Dim_Sizes': [len(pitch)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
+               'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
@@ -338,7 +349,7 @@ for select in selects:
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'Support_data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
-               'Dim_Sizes': [len(vardata)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)

@@ -26,3 +26,8 @@ magY_file = cdfread.CDF(user_path + root + '/' + MagY + '.cdf')
 magZ_file = cdfread.CDF(user_path + root + '/' + MagZ + '.cdf')
 hibar_pitch_file = cdfread.CDF(user_path + root + '/' + hibar_gyro_pitch + '.cdf')
 hibar_yaw_file = cdfread.CDF(user_path + root + '/' + hibar_gyro_yaw + '.cdf')
+
+
+# INFORMATION NEEDED FOR EPOCH in Initial_data_processing
+root_trice = 'C:/Users/cfeltman/Desktop/TRICE/' # My labtop
+counts_file_low = cdfread.CDF(root_trice + 'TRICE_52004_l1_eepaa_20181208T082243_v1.1.2_COUNTS.cdf')

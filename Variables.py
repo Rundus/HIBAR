@@ -7,6 +7,7 @@ import numpy as np
 from Files import ESA_file_1,ESA_file_2,user_path
 from Files import mag36200_file,magX_file,magY_file,magZ_file
 from Files import hibar_pitch_file,hibar_yaw_file
+from Files import counts_file_low
 
 
 # --- GENERAL VARIABLES ---
@@ -73,5 +74,6 @@ ESA1_T0 = ESA_file_1.varget('T-0')
 ESA2_T0 = ESA_file_2.varget('T-0')
 Epochs_start = [2003,1,27,7,50,2,000,000,000,000]
 Epochs_start_tt2000 = np.array(cdflib.epochs.CDFepoch.compute_tt2000(Epochs_start))
-
+counts_low_info = counts_file_low.cdf_info()
+zvars_counts_low = counts_low_info['zVariables']
 
