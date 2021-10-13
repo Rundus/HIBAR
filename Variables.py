@@ -1,3 +1,4 @@
+
 #---------------------
 # HIBAR VARIABLES FILE
 #---------------------
@@ -8,6 +9,8 @@ from Files import ESA_file_1,ESA_file_2,user_path
 from Files import mag36200_file,magX_file,magY_file,magZ_file
 from Files import hibar_pitch_file,hibar_yaw_file
 from Files import counts_file_low
+
+from Files import ESA1_sensor1_L0_file,ESA1_sensor2_L0_file,ESA2_sensor1_L0_file,ESA2_sensor2_L0_file
 
 
 # --- GENERAL VARIABLES ---
@@ -33,6 +36,14 @@ magZ_time = magZ_file.varget('time')
 magZ_T0 = magZ_file.varget('T-0')
 
 # --- ESA INFORMATION ---
+
+# SCOTT GAVE THESE VALUES IN EMAIL
+engy_per_volt = 7.9  # In eV?
+geometric_factor = 1.66e-4 # in seconds
+Deadtime = 1.6e-6 # in seconds
+acquisition_interval = 850e-6 # in seconds
+
+
 
 #ESA1
 ESA1_data = np.transpose(ESA_file_1.varget('data1'))
@@ -76,4 +87,35 @@ Epochs_start = [2003,1,27,7,50,2,000,000,000,000]
 Epochs_start_tt2000 = np.array(cdflib.epochs.CDFepoch.compute_tt2000(Epochs_start))
 counts_low_info = counts_file_low.cdf_info()
 zvars_counts_low = counts_low_info['zVariables']
+
+
+
+
+
+# --- POST-INITIAL DATA PROCESSING INFORMATION ---
+temp = ESA1_sensor1_L0_file.varget('Energy')
+Energies_electron = temp[0]
+temp = ESA2_sensor2_L0_file.varget('Energy')
+Energies_ion = temp[0]
+pitch = ESA1_sensor1_L0_file.varget('pitch_angle')
+
+ESA1_sensor1_L0_counts = ESA1_sensor1_L0_file.varget('counts')
+ESA1_sensor2_L0_counts = ESA1_sensor2_L0_file.varget('counts')
+ESA2_sensor1_L0_counts = ESA2_sensor1_L0_file.varget('counts')
+ESA2_sensor2_L0_counts = ESA2_sensor2_L0_file.varget('counts')
+
+ESA1_sensor1_L0_epoch = ESA1_sensor1_L0_file.varget('epoch')
+ESA1_sensor2_L0_epoch = ESA1_sensor2_L0_file.varget('epoch')
+ESA2_sensor1_L0_epoch = ESA2_sensor1_L0_file.varget('epoch')
+ESA2_sensor2_L0_epoch = ESA2_sensor2_L0_file.varget('epoch')
+
+ESA1_sensor1_L0_SweepDuration = ESA1_sensor1_L0_file.varget('Sweep_Interval')
+ESA1_sensor2_L0_SweepDuration = ESA1_sensor2_L0_file.varget('Sweep_Interval')
+ESA2_sensor1_L0_SweepDuration = ESA2_sensor1_L0_file.varget('Sweep_Interval')
+ESA2_sensor2_L0_SweepDuration = ESA2_sensor2_L0_file.varget('Sweep_Interval')
+
+
+
+
+
 

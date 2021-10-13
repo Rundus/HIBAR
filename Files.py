@@ -4,8 +4,8 @@ from cdflib import cdfread
 # FILE REPOSITORY
 # ---------------
 user_path = "C:/Users/cfeltman/Desktop/"
-root = 'HIBAR/data'
-output_root ='HIBAR/Output'
+root = 'HIBAR/'
+output_root ='Output/'
 mag36200 = 'mag36200'
 eepaa1 = 'hibar_esa1'
 eepaa2 = 'hibar_esa2'
@@ -27,6 +27,12 @@ magZ_file = cdfread.CDF(user_path + root + '/' + MagZ + '.cdf')
 hibar_pitch_file = cdfread.CDF(user_path + root + '/' + hibar_gyro_pitch + '.cdf')
 hibar_yaw_file = cdfread.CDF(user_path + root + '/' + hibar_gyro_yaw + '.cdf')
 
+
+# # --- POST-INITIAL DATA PROCESSING FILES ---
+ESA1_sensor1_L0_file = cdfread.CDF(user_path+ root  +'ESA1_sensor1_counts_data' + '.cdf' )
+ESA1_sensor2_L0_file = cdfread.CDF(user_path+ root  +'ESA1_sensor2_counts_data' + '.cdf' )
+ESA2_sensor1_L0_file = cdfread.CDF(user_path+ root  +'ESA2_sensor1_counts_data' + '.cdf' )
+ESA2_sensor2_L0_file = cdfread.CDF(user_path+ root  +'ESA2_sensor2_counts_data' + '.cdf' )
 
 # INFORMATION NEEDED FOR EPOCH in Initial_data_processing
 root_trice = 'C:/Users/cfeltman/Desktop/TRICE/' # My labtop

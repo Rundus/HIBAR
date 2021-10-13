@@ -10,7 +10,7 @@ from Files import ESA_file_1,ESA_file_2,root,counts_file_low
 from Files import mag36200_file,magX_file,magY_file,magZ_file
 from Files import hibar_pitch_file,hibar_yaw_file,user_path
 from Variables import sensor_names,ESA1_info,ESA2_info,Epochs_start_tt2000
-from Variables import zvars_counts_low
+from Variables import zvars_counts_low,ESA1_discrete_status,ESA2_discrete_status,engy_per_volt
 from functions import write_var_to_file
 
 
@@ -20,7 +20,7 @@ from functions import write_var_to_file
 
 #select the sensor to operate on
 selects = [0,1,2,3]
-
+# selects = [0]
 # --- MAGNETOMETER INFORMATION ---
 mag36200_time = mag36200_file.varget('time')
 mag36200_x = mag36200_file.varget('x')
@@ -66,17 +66,16 @@ ESA2_T0 = ESA_file_2.varget('T-0')
 ESA2_info = ESA_file_2.cdf_info()
 ESA2_zvars = ESA2_info['zVariables']
 ESA2_rvars = ESA2_info['rVariables']
-
 print('Done')
 
 
 #---------------------
 # --- OUTPUT FILES ---
 #---------------------
-ESA1_sensor1_counts_file = cdfwrite.CDF(user_path + root + 'ESA1_sensor1_counts_data',cdf_spec=ESA1_info,delete=True)
-ESA1_sensor2_counts_file = cdfwrite.CDF(user_path + root + 'ESA1_sensor2_counts_data',cdf_spec=ESA1_info,delete=True)
-ESA2_sensor1_counts_file = cdfwrite.CDF(user_path + root + 'ESA2_senor1_counts_data',cdf_spec=ESA2_info,delete=True)
-ESA2_sensor2_counts_file = cdfwrite.CDF(user_path + root + 'ESA2_senor2_counts_data',cdf_spec=ESA2_info,delete=True)
+ESA1_sensor1_counts_file = cdfwrite.CDF(user_path + root + 'ESA1_sensor1_counts_data.cdf',cdf_spec=ESA1_info,delete=True)
+ESA1_sensor2_counts_file = cdfwrite.CDF(user_path + root + 'ESA1_sensor2_counts_data.cdf',cdf_spec=ESA1_info,delete=True)
+ESA2_sensor1_counts_file = cdfwrite.CDF(user_path + root + 'ESA2_sensor1_counts_data.cdf',cdf_spec=ESA2_info,delete=True)
+ESA2_sensor2_counts_file = cdfwrite.CDF(user_path + root + 'ESA2_sensor2_counts_data.cdf',cdf_spec=ESA2_info,delete=True)
 
 output_files = [ESA1_sensor1_counts_file,ESA1_sensor2_counts_file,ESA2_sensor1_counts_file,ESA2_sensor2_counts_file]
 
@@ -109,6 +108,15 @@ for i in range(len(selects)):
 
 Energies_DAC = Energies_DACs[0][::-1]
 
+
+# CONVERT BETWEEN DAC VALUES AND ENERGY
+Energies_HIBAR = np.flip(np.round(np.array([-10.3,-10.3,-11.6,-13,-15,-16.9,-18.9,-21.3,-24.5,-27.8,-31.7,-35.9,-40.9,-46.1,-52.5,-60,-67.7,-76.9,-87.3,-99.1,-113.5,-129,-145.7,-165.2,-188.9,-214.9,-246.2,-279.5,-318.5,-360,-413,-471,-532,-605,-692,-786,-900,-1022,-1156,-1322,-1509,-1714,-1963,-2231,-2540],dtype='float64') * -1*engy_per_volt,0))
+
+
+
+
+
+
 # --- PITCH ANGLE ---
 # 4 is ???deg
 # Channel 14:  0deg (particles coming down the field)
@@ -120,8 +128,8 @@ Energies_DAC = Energies_DACs[0][::-1]
 # 16 and 8   135deg
 # 5 and 7  157.5 deg
 # 6   180 deg
-channel_map = np.array([4,14,13,15,12,1,11,2,10,3,9,16,8,5,7,6])-1
-pitch = [0,0,22.5,22.5,45,67.5,67.5,90,90,112.5,112.5,135,135,157.5,157.5,180]
+channel_map = np.array([14,13,15,12,1,11,2,10,3,9,16,8,5,7,6])-1
+pitch = [0,22.5,22.5,45,67.5,67.5,90,90,112.5,112.5,135,135,157.5,157.5,180]
 
 
 #---------------------------------------------------------------------
@@ -169,6 +177,7 @@ ESA1_sensor2_counts = np.zeros(shape=(No_of_needed_loops[1],len(pitch),len(Energ
 ESA2_sensor1_counts = np.zeros(shape=(No_of_needed_loops[2],len(pitch),len(Energies_DAC)))
 ESA2_sensor2_counts = np.zeros(shape=(No_of_needed_loops[3],len(pitch),len(Energies_DAC)))
 
+
 ESA1_sensor1_DACvals = np.zeros(shape=(No_of_needed_loops[0],len(Energies_DAC)))
 ESA1_sensor2_DACvals = np.zeros(shape=(No_of_needed_loops[1],len(Energies_DAC)))
 ESA2_sensor1_DACvals = np.zeros(shape=(No_of_needed_loops[2],len(Energies_DAC)))
@@ -189,6 +198,11 @@ ESA1_sensor2_sweep_duration = np.zeros(shape=(No_of_needed_loops[1]))
 ESA2_sensor1_sweep_duration = np.zeros(shape=(No_of_needed_loops[2]))
 ESA2_sensor2_sweep_duration = np.zeros(shape=(No_of_needed_loops[3]))
 
+ESA1_sensor1_count_interval = np.zeros(shape=(No_of_needed_loops[0],len(Energies_DAC)-1))
+ESA1_sensor2_count_interval = np.zeros(shape=(No_of_needed_loops[1],len(Energies_DAC)-1))
+ESA2_sensor1_count_interval = np.zeros(shape=(No_of_needed_loops[2],len(Energies_DAC)-1))
+ESA2_sensor2_count_interval = np.zeros(shape=(No_of_needed_loops[3],len(Energies_DAC)-1))
+
 
 
 
@@ -198,9 +212,16 @@ ESA_sensor_times = [ESA1_sensor1_times,ESA1_sensor2_times,ESA2_sensor1_times,ESA
 ESA_sensor_DACvals = [ESA1_sensor1_DACvals,ESA1_sensor2_DACvals,ESA2_sensor1_DACvals,ESA2_sensor2_DACvals]
 ESA_sensor_epochs = [ESA1_sensor1_epoch,ESA1_sensor2_epoch,ESA2_sensor1_epoch,ESA2_sensor2_epoch]
 ESA_sensor_sweep_durations = [ESA1_sensor1_sweep_duration,ESA1_sensor2_sweep_duration,ESA2_sensor1_sweep_duration,ESA2_sensor2_sweep_duration]
+ESA_count_intervals = [ESA1_sensor1_count_interval,ESA1_sensor2_count_interval,ESA2_sensor1_count_interval,ESA2_sensor2_count_interval]
+# Discrete_status = [ESA1_discrete_status[],ESA2_discrete_status[]]
 
 for select in selects:
-    wengy = Energies_DAC
+
+    if select == 3:
+        wengy = -1*Energies_HIBAR
+    else:
+        wengy = Energies_HIBAR
+
     wSWEEPs = SWEEPdata[select]
     clump_size = len(wengy)
     wDACvals = ESA_sensor_DACvals[select]
@@ -209,12 +230,15 @@ for select in selects:
     wESA_sensor_data_reduced = ESA_sensor_data_reduced[select]
     wSensor_Epoch = ESA_sensor_epochs[select]
     wSWEEPduration = ESA_sensor_sweep_durations[select]
+    wCountInterval = ESA_count_intervals[select]
 
     #Select the time
     if select == 0 or select == 1:
         wtime = ESAtimes[0]
+        # wDiscreteStatus = Discrete_status[0]
     elif select== 2 or select == 3:
         wtime = ESAtimes[1]
+        # wDiscreteStatus = Discrete_status[1]
 
 
     # for i in range(No_of_needed_loops[select]):
@@ -228,15 +252,32 @@ for select in selects:
         clump_start = (0 + i *clump_size)
         clump_end = (clump_size +  i *clump_size)
 
-        wDACvals[i] = wSWEEPs[clump_start:clump_end]
-        wESA_sensor_Times[i] = wtime[clump_start:clump_end]
-        wSensor_Epoch[i] = wtime[clump_start]
-        wSWEEPduration[i] = sum(wtime[clump_start:clump_end])
+
+        wDACvals[i] = np.flip(wSWEEPs[clump_start:clump_end])
+        wESA_sensor_Times[i] = np.flip(wtime[clump_start:clump_end])
+        wSensor_Epoch[i] = wtime[clump_end]
+        wSWEEPduration[i] = wtime[clump_end] - wtime[clump_start]
+
+        #Calculate count intervals (SKIP THE 2nd 129 DAC value):
+        for l in range(len(wESA_sensor_Times[0])-1):
+            wCountInterval[i][l] =  wESA_sensor_Times[i][l + 1] - wESA_sensor_Times[i][l]
+
+
 
 
         #Store data by pitch
         for j in range(len(channel_map)):
-            wcounts[i][j] = wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end]
+            dat = wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end]
+
+            for k in range(len(wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end])): #THIS LINE SLOWS THE CODE A LOT!!!
+                sub_dat = wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end][k]
+                if sub_dat <0:
+
+                    dat[k] = 0
+
+
+            wcounts[i][j] = np.flip(dat)
+
 
     # -------------------------
     # CREATE THE EPOCH VARIABLE
@@ -250,9 +291,10 @@ for select in selects:
     print(0)
     #COUNTS
     vardata = wcounts
-    attrs = ['counts', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'counts', 'nnspectrogram']
+    attrs = ['counts', np.array([-2],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'counts', 'nnspectrogram']
+
     infos = [0, 44, len(vardata), attrs[0], [-9223372036854775807]]
-    varattributes = {'CATDESC': 'ESA', 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch_angle','DEPEND_2':'energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
+    varattributes = {'CATDESC': sensor_names[select], 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch_angle','DEPEND_2':'Energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': 'ESA', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
@@ -265,12 +307,11 @@ for select in selects:
     print(1)
     # ESA SENSOR DATA POINT TIME OCCURANCE
     vardata = wESA_sensor_Times
-    attrs = ['ESA_data_time_since_launch', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'seonds', 'nnspectrogram']
+    attrs = ['ESA_data_time_since_launch', np.array([-2],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'seonds', 'nnspectrogram']
     infos = [1, 44, len(vardata), attrs[0], [-9223372036854775807]]
-    varattributes = {'CATDESC': attrs[0], 'DEPEND_0': 'epoch', 'DEPEND_1': 'energy',
+    varattributes = {'CATDESC': attrs[0], 'DEPEND_0': 'epoch', 'DEPEND_1': 'Energy',
                      'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
-                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
-                     'LABL_PTR_1': 'eepaa_LABL_1', 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
+                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0], 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
@@ -280,10 +321,11 @@ for select in selects:
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
 
     print(2)
+
     # EPOCH
     vardata = wSensor_Epoch_tt2000
     # vardata = wSensor_Epoch
-    attrs = ['epoch', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'ns', 'series']
+    attrs = ['epoch', np.array([-1.e+31],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'ns', 'series']
     infos = [2, 33, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
@@ -296,28 +338,17 @@ for select in selects:
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
 
-    # vardata = np.array(roll_output_epoch[select], dtype='float64')
-    # attributes = ['Roll_Epoch', 'ns', 'linear', vardata.min(), vardata.max(),counts_file_low.varattsget(zvars_counts_low[0], expand=True)]
-    # attrs = attributes[5]
-    # attrs['VAR_TYPE'] = 'support_data'
-    # attributes[5] = attrs
-    # varinfo = counts_file_low.varinq(zvars_counts_low[0])
-    # write_var_to_file(sun_spike_noise_file_low, varinfo, vardata, attributes)
-
-
-
     print(3)
     # ENERGY
-    vardata = np.array(Energies_DAC, dtype='float64')
-    attrs = ['energy', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'DAC_val_units', 'series']
+    vardata = wengy
+    attrs = ['Energy', np.array([-1.e+31],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'eV', 'series']
     infos = [3, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
-                     'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
-                     'VALIDMAX': attrs[3], 'VAR_TYPE':'Support_data', 'SCALETYP': attrs[4]}
+                     'UNITS': attrs[5], 'VALIDMIN': attrs[2],'VALIDMAX': attrs[3], 'VAR_TYPE':'Support_data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
-               'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Dim_Sizes': [len(vardata)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
@@ -325,15 +356,14 @@ for select in selects:
     print(4)
     # PITCH
     vardata = np.array(pitch, dtype='float64')
-    attrs = ['pitch_angle', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'deg', 'series']
+    attrs = ['pitch_angle', np.array([-1.e+31],dtype='float32'), [0], [180], 'linear', 'deg', 'series']
     infos = [4, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
-                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
-                     'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
+                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0], 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'Support_data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
-               'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Dim_Sizes': [len(vardata)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
@@ -341,7 +371,7 @@ for select in selects:
     print(5)
     # SWEEP DURATION
     vardata = wSWEEPduration
-    attrs = ['Sweep_duration', [-1.e+31], [vardata.min()], [vardata.max()], 'linear', 'seconds', 'series']
+    attrs = ['Sweep_duration', np.array([-1.e+31],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'seconds', 'series']
     infos = [5, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
@@ -354,6 +384,23 @@ for select in selects:
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
     print(6)
+
+    # SWEEP INDIVIDUAL DATA POINT INTERVALS
+    vardata = np.array(wCountInterval)
+    attrs = ['Sweep_Interval', np.array([-1.e+31], dtype='float32'), [vardata.min()], [vardata.max()], 'linear',
+             'seconds', 'series']
+    infos = [6, 44, len(vardata), attrs[0], [-9223372036854775807]]
+    varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
+                     'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': attrs[0],
+                     'LABL_PTR_1': attrs[5], 'LABL_PTR_2': 'eepaa_LABL_2', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
+                     'VALIDMAX': attrs[3], 'VAR_TYPE': 'Support_data', 'SCALETYP': attrs[4]}
+    varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
+               'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 2,
+               'Dim_Sizes': [len(vardata[0])], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
+               'Block_Factor': 0}
+    output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
+    print(7)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
