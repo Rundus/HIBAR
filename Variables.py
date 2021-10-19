@@ -92,29 +92,6 @@ zvars_counts_low = counts_low_info['zVariables']
 
 
 
-# --- POST-INITIAL DATA PROCESSING INFORMATION ---
-temp = ESA1_sensor1_L0_file.varget('Energy')
-Energies_electron = temp[0]
-temp = ESA2_sensor2_L0_file.varget('Energy')
-Energies_ion = temp[0]
-pitch = ESA1_sensor1_L0_file.varget('pitch_angle')
-
-ESA1_sensor1_L0_counts = ESA1_sensor1_L0_file.varget('counts')
-ESA1_sensor2_L0_counts = ESA1_sensor2_L0_file.varget('counts')
-ESA2_sensor1_L0_counts = ESA2_sensor1_L0_file.varget('counts')
-ESA2_sensor2_L0_counts = ESA2_sensor2_L0_file.varget('counts')
-
-ESA1_sensor1_L0_epoch = ESA1_sensor1_L0_file.varget('epoch')
-ESA1_sensor2_L0_epoch = ESA1_sensor2_L0_file.varget('epoch')
-ESA2_sensor1_L0_epoch = ESA2_sensor1_L0_file.varget('epoch')
-ESA2_sensor2_L0_epoch = ESA2_sensor2_L0_file.varget('epoch')
-
-ESA1_sensor1_L0_SweepDuration = ESA1_sensor1_L0_file.varget('Sweep_Interval')
-ESA1_sensor2_L0_SweepDuration = ESA1_sensor2_L0_file.varget('Sweep_Interval')
-ESA2_sensor1_L0_SweepDuration = ESA2_sensor1_L0_file.varget('Sweep_Interval')
-ESA2_sensor2_L0_SweepDuration = ESA2_sensor2_L0_file.varget('Sweep_Interval')
-
-
 
 
 

@@ -50,7 +50,7 @@ ESA_SweepDuration = [ESA1_sensor1_L0_SweepDuration,ESA1_sensor2_L0_SweepDuration
 
 
 # --- Some Variables ---
-selects = [3]
+selects = [0,1,2,3]
 
 print('Done')
 
@@ -77,8 +77,6 @@ for select in selects:
         wEngy = Energies_ion
     else:
         wEngy = Energies_electron
-
-    print(wEngy)
 
 
     for tme,ptch,engy in itertools.product(*ranges):
@@ -130,7 +128,6 @@ for select in selects:
     # DIFFERNTIAL Energy FLUX
     vardata = wDiffN
     attrs = ['Differential_Energy_Flux', np.array([-2], dtype='float32'), [vardata.min()], [vardata.max()], 'linear','cm!U-2!N str!U-1!N s!U-1!N eV/eV','nnspectrogram']
-    print(vardata.min(),vardata.max())
     infos = [1, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': sensor_names[select] + ' ' + attrs[0], 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch_angle',
                      'DEPEND_2': 'Energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
@@ -175,7 +172,6 @@ for select in selects:
                      'UNITS': attrs[5], 'VALIDMIN': attrs[2], 'VALIDMAX': attrs[3], 'VAR_TYPE': 'Support_data',
                      'SCALETYP': attrs[4]}
 
-    print(vardata)
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 1,
                'Dim_Sizes': [], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],

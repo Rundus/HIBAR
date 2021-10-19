@@ -19,8 +19,8 @@ from functions import write_var_to_file
 # ----------------------------------------
 
 #select the sensor to operate on
-selects = [0,1,2,3]
-# selects = [0]
+# selects = [0,1,2,3]
+selects = [0]
 # --- MAGNETOMETER INFORMATION ---
 mag36200_time = mag36200_file.varget('time')
 mag36200_x = mag36200_file.varget('x')
@@ -86,13 +86,15 @@ output_files = [ESA1_sensor1_counts_file,ESA1_sensor2_counts_file,ESA2_sensor1_c
 #------------------------------------------------------
 
 # --- TIME & CALCULATED VALUES FROM BELOW---
-ESAtimes = [ESA1_time,ESA2_time]
+
 first_sweep_starts = [7, 22, 31, 1]#index corresponding to the beginning of the first full sweeps for each DACSWEEP. CALCULATED from CDF_INFO
 ignored_indicies = [41,26,31,16]#How many indicies at the end of the data should be ignore to clump the data perfectly by length of energies
 
 
 # --- GET THE "ENERGIES" (SWEEP DACS) for each sensor ---
 SWEEPdata = [ESA1_sweepDAC1[first_sweep_starts[0]:(len(ESA1_sweepDAC1) - ignored_indicies[0])],ESA1_sweepDAC2[first_sweep_starts[1]:(len(ESA1_sweepDAC2) - ignored_indicies[1])],ESA2_sweepDAC1[first_sweep_starts[2]:(len(ESA2_sweepDAC1) - ignored_indicies[2])],ESA2_sweepDAC2[first_sweep_starts[3]:(len(ESA2_sweepDAC2) - ignored_indicies[3])]]
+ESAtimes = [ESA1_time[first_sweep_starts[0]:(len(ESA1_sweepDAC1) - ignored_indicies[0])],ESA1_time[first_sweep_starts[1]:(len(ESA1_sweepDAC2) - ignored_indicies[1])],ESA2_time[first_sweep_starts[2]:(len(ESA2_sweepDAC1) - ignored_indicies[2])],ESA2_time[first_sweep_starts[3]:(len(ESA2_sweepDAC2) - ignored_indicies[3])]]
+
 
 Energies_DACs = [[] for i in range(len(selects))]
 
@@ -116,8 +118,7 @@ Energies_HIBAR = np.flip(np.round(np.array([-10.3,-10.3,-11.6,-13,-15,-16.9,-18.
 
 
 
-
-# --- PITCH ANGLE ---
+# --- PITCH ANGLE IONS ---
 # 4 is ???deg
 # Channel 14:  0deg (particles coming down the field)
 # 15 and 13 are 22.5 deg
@@ -128,8 +129,10 @@ Energies_HIBAR = np.flip(np.round(np.array([-10.3,-10.3,-11.6,-13,-15,-16.9,-18.
 # 16 and 8   135deg
 # 5 and 7  157.5 deg
 # 6   180 deg
-channel_map = np.array([14,13,15,12,1,11,2,10,3,9,16,8,5,7,6])-1
-pitch = [0,22.5,22.5,45,67.5,67.5,90,90,112.5,112.5,135,135,157.5,157.5,180]
+channel_map_ions = np.array([14,13,15,12,1,11,2,10,3,9,16,8,5,7,6])-1
+channel_map_electrons = np.array([6,5,7,4,8,3,9,2,10,1,11,16,12,15,13,14])-1
+pitch_ions = [0,22.5,22.5,45,67.5,67.5,90,90,112.5,112.5,135,135,157.5,157.5,180]
+pitch_electrons = [0,22.5,22.5,45,45,67.5,67.5,90,90,112.5,112.5,135,135,157.5,157.5,180]
 
 
 #---------------------------------------------------------------------
@@ -172,10 +175,10 @@ ESA1_sensor2_data_reduced = [dat[first_sweep_starts[1]:(len(dat) - ignored_indic
 ESA2_sensor1_data_reduced = [dat[first_sweep_starts[2]:(len(dat) - ignored_indicies[2])] for dat in ESA2_sensor1_data]
 ESA2_sensor2_data_reduced = [dat[first_sweep_starts[3]:(len(dat) - ignored_indicies[3])] for dat in ESA2_sensor2_data]
 
-ESA1_sensor1_counts = np.zeros(shape=(No_of_needed_loops[0],len(pitch),len(Energies_DAC)))
-ESA1_sensor2_counts = np.zeros(shape=(No_of_needed_loops[1],len(pitch),len(Energies_DAC)))
-ESA2_sensor1_counts = np.zeros(shape=(No_of_needed_loops[2],len(pitch),len(Energies_DAC)))
-ESA2_sensor2_counts = np.zeros(shape=(No_of_needed_loops[3],len(pitch),len(Energies_DAC)))
+ESA1_sensor1_counts = np.zeros(shape=(No_of_needed_loops[0],len(pitch_electrons),len(Energies_DAC)))
+ESA1_sensor2_counts = np.zeros(shape=(No_of_needed_loops[1],len(pitch_electrons),len(Energies_DAC)))
+ESA2_sensor1_counts = np.zeros(shape=(No_of_needed_loops[2],len(pitch_electrons),len(Energies_DAC)))
+ESA2_sensor2_counts = np.zeros(shape=(No_of_needed_loops[3],len(pitch_electrons),len(Energies_DAC)))
 
 
 ESA1_sensor1_DACvals = np.zeros(shape=(No_of_needed_loops[0],len(Energies_DAC)))
@@ -213,14 +216,19 @@ ESA_sensor_DACvals = [ESA1_sensor1_DACvals,ESA1_sensor2_DACvals,ESA2_sensor1_DAC
 ESA_sensor_epochs = [ESA1_sensor1_epoch,ESA1_sensor2_epoch,ESA2_sensor1_epoch,ESA2_sensor2_epoch]
 ESA_sensor_sweep_durations = [ESA1_sensor1_sweep_duration,ESA1_sensor2_sweep_duration,ESA2_sensor1_sweep_duration,ESA2_sensor2_sweep_duration]
 ESA_count_intervals = [ESA1_sensor1_count_interval,ESA1_sensor2_count_interval,ESA2_sensor1_count_interval,ESA2_sensor2_count_interval]
-# Discrete_status = [ESA1_discrete_status[],ESA2_discrete_status[]]
+ESA_pitches = [pitch_electrons,pitch_electrons]
+ESA_channel_maps = [channel_map_electrons,channel_map_ions]
 
 for select in selects:
 
     if select == 3:
         wengy = -1*Energies_HIBAR
+        wPitch = ESA_pitches[1]
+        wChannel_map = ESA_channel_maps[1]
     else:
         wengy = Energies_HIBAR
+        wPitch = ESA_pitches[0]
+        wChannel_map = ESA_channel_maps[0]
 
     wSWEEPs = SWEEPdata[select]
     clump_size = len(wengy)
@@ -231,14 +239,10 @@ for select in selects:
     wSensor_Epoch = ESA_sensor_epochs[select]
     wSWEEPduration = ESA_sensor_sweep_durations[select]
     wCountInterval = ESA_count_intervals[select]
+    wtime = ESAtimes[select]
 
-    #Select the time
-    if select == 0 or select == 1:
-        wtime = ESAtimes[0]
-        # wDiscreteStatus = Discrete_status[0]
-    elif select== 2 or select == 3:
-        wtime = ESAtimes[1]
-        # wDiscreteStatus = Discrete_status[1]
+
+
 
 
     # for i in range(No_of_needed_loops[select]):
@@ -262,15 +266,12 @@ for select in selects:
         for l in range(len(wESA_sensor_Times[0])-1):
             wCountInterval[i][l] =  wESA_sensor_Times[i][l + 1] - wESA_sensor_Times[i][l]
 
-
-
-
         #Store data by pitch
-        for j in range(len(channel_map)):
-            dat = wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end]
+        for j in range(len(wChannel_map)):
+            dat = wESA_sensor_data_reduced[wChannel_map[j]][clump_start:clump_end]
 
-            for k in range(len(wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end])): #THIS LINE SLOWS THE CODE A LOT!!!
-                sub_dat = wESA_sensor_data_reduced[channel_map[j]][clump_start:clump_end][k]
+            for k in range(len(wESA_sensor_data_reduced[wChannel_map[j]][clump_start:clump_end])): #THIS LINE SLOWS THE CODE A LOT!!!
+                sub_dat = wESA_sensor_data_reduced[wChannel_map[j]][clump_start:clump_end][k]
                 if sub_dat <0:
 
                     dat[k] = 0
@@ -294,12 +295,12 @@ for select in selects:
     attrs = ['counts', np.array([-2],dtype='float32'), [vardata.min()], [vardata.max()], 'linear', 'counts', 'nnspectrogram']
 
     infos = [0, 44, len(vardata), attrs[0], [-9223372036854775807]]
-    varattributes = {'CATDESC': sensor_names[select], 'DEPEND_0': 'epoch', 'DEPEND_1 ': 'pitch_angle','DEPEND_2':'Energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
+    varattributes = {'CATDESC': sensor_names[select], 'DEPEND_0': 'epoch', 'DEPEND_1': 'pitch_angle','DEPEND_2':'Energy', 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
                      'FILLVAL': np.array(attrs[1], dtype='float32'), 'FORMAT': 'E12.2', 'LABLAXIS': 'ESA', 'UNITS': attrs[5], 'VALIDMIN': attrs[2],
                      'VALIDMAX': attrs[3], 'VAR_TYPE': 'data', 'SCALETYP': attrs[4]}
     varinfo = {'Variable': attrs[0], 'Num': infos[0], 'Var_Type': 'zVariable', 'Data_Type': infos[1],
                'Data_Type_Description': infos[3], 'Num_Elements': 1, 'Num_Dims': 2,
-               'Dim_Sizes': [len(pitch),len(Energies_DAC)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
+               'Dim_Sizes': [len(wPitch),len(Energies_DAC)], 'Sparse': 'No_sparse', 'Last_Rec': infos[2],
                'Rec_Vary': True, 'Dim_Vary': [], 'Pad': np.array(infos[4], dtype='float32'), 'Compress': 0,
                'Block_Factor': 0}
     output_files[select].write_var(varinfo, var_attrs=varattributes, var_data=vardata)
@@ -355,7 +356,7 @@ for select in selects:
 
     print(4)
     # PITCH
-    vardata = np.array(pitch, dtype='float64')
+    vardata = np.array(wPitch, dtype='float64')
     attrs = ['pitch_angle', np.array([-1.e+31],dtype='float32'), [0], [180], 'linear', 'deg', 'series']
     infos = [4, 44, len(vardata), attrs[0], [-9223372036854775807]]
     varattributes = {'CATDESC': attrs[0], 'DISPLAY_TYPE': attrs[6], 'FIELDNAM': attrs[0],
